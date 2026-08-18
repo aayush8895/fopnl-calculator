@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Nutrient Level Checker</title>
+<style>
+  :root{
+    --bg:#f4f6f5; --card:#ffffff; --text:#16201c; --muted:#5b6b64; --border:#dfe6e2;
+    --accent:#0f7a4f; --accent-text:#ffffff;
+    --low-bg:#e6f6ec; --low-text:#0f7a3d; --low-border:#a9dfbd;
+    --med-bg:#fff6e0; --med-text:#8a5a00; --med-border:#f3d78a;
+    --high-bg:#fdeaea; --high-text:#a3241f; --high-border:#f3b9b6;
+    --input-bg:#ffffff;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#12161a; --card:#1b2127; --text:#e7ece9; --muted:#98a39c; --border:#2b333a;
+      --accent:#22a06b; --accent-text:#062615;
+      --low-bg:#0f2a1c; --low-text:#5fd58c; --low-border:#1e5a3a;
+      --med-bg:#332707; --med-text:#e8b445; --med-border:#5f4a15;
+      --high-bg:#3a1414; --high-text:#f19b96; --high-border:#6b2323;
+      --input-bg:#232a31;
+    }
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;padding-bottom:40px;}
+  header{padding:18px 16px 8px;text-align:center;}
+  header h1{margin:0;font-size:20px;}
+  header p{margin:4px 0 0;color:var(--muted);font-size:13px;}
+  .wrap{max-width:520px;margin:0 auto;padding:0 14px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:14px;}
+  label{display:block;font-size:12.5px;color:var(--muted);margin:10px 0 4px;font-weight:600;}
+  label:first-child{margin-top:0;}
+  input[type=number]{
+    width:100%;padding:10px 11px;border:1px solid var(--border);border-radius:9px;
+    background:var(--input-bg);color:var(--text);font-size:15px;
+  }
+  button{font:inherit;cursor:pointer;border:none;border-radius:9px;padding:10px 14px;font-size:14px;font-weight:600;}
+  .btn-primary{background:var(--accent);color:var(--accent-text);width:100%;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+  .subhead{font-size:14.5px;font-weight:700;margin:14px 0 2px;}
+  .subhead:first-child{margin-top:0;}
+  .field-note{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  details summary{cursor:pointer;font-weight:600;font-size:13.5px;color:var(--text);padding:2px 0;}
+  details[open] summary{margin-bottom:6px;}
+  .status{font-size:13px;margin-top:8px;min-height:16px;}
+  .status.err{color:var(--high-text);}
+  .result{border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-top:10px;}
+  .result .top{display:flex;justify-content:space-between;align-items:center;}
+  .result .name{font-weight:700;font-size:14.5px;}
+  .badge{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid;}
+  .badge.low{background:var(--low-bg);color:var(--low-text);border-color:var(--low-border);}
+  .badge.med{background:var(--med-bg);color:var(--med-text);border-color:var(--med-border);}
+  .badge.high{background:var(--high-bg);color:var(--high-text);border-color:var(--high-border);}
+  .badge.unk{background:transparent;color:var(--muted);border-color:var(--border);}
+  .result .detail{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.5;}
+  footer{max-width:520px;margin:20px auto 0;padding:0 14px;font-size:11.5px;color:var(--muted);line-height:1.6;text-align:center;}
+  .divider{border:none;border-top:1px solid var(--border);margin:14px 0;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Nutrient Level Checker</h1>
+  <p>Low / Medium / High — per FSS (Labelling &amp; Display) Regulation, 2020</p>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <div class="subhead">1. Serving size</div>
+    <label for="servingSize">Serving size as printed on pack (g) — required</label>
+    <input type="number" id="servingSize" inputmode="decimal" placeholder="e.g. 30">
+
+    <div class="subhead">2. Per serving (used for the verdict)</div>
+    <div class="grid3">
+      <div><label for="ps_satfat">Sat. fat (g)</label><input type="number" id="ps_satfat" inputmode="decimal"></div>
+      <div><label for="ps_sugar">Added sugars (g)</label><input type="number" id="ps_sugar" inputmode="decimal"></div>
+      <div><label for="ps_sodium">Sodium (mg)</label><input type="number" id="ps_sodium" inputmode="decimal"></div>
+    </div>
+
+    <details style="margin-top:12px;">
+      <summary>Per 100 g (optional — fills blanks above using serving size)</summary>
+      <div class="grid3" style="margin-top:8px;">
+        <div><label for="p100_satfat">Sat. fat (g)</label><input type="number" id="p100_satfat" inputmode="decimal"></div>
+        <div><label for="p100_sugar">Added sugars (g)</label><input type="number" id="p100_sugar" inputmode="decimal"></div>
+        <div><label for="p100_sodium">Sodium (mg)</label><input type="number" id="p100_sodium" inputmode="decimal"></div>
+      </div>
+      <div class="grid3" style="margin-top:8px;">
+        <div><label for="ps_salt">or Salt/serving (g)</label><input type="number" id="ps_salt" inputmode="decimal"></div>
+        <div></div>
+        <div><label for="p100_salt">or Salt/100g (g)</label><input type="number" id="p100_salt" inputmode="decimal"></div>
+      </div>
+      <p class="field-note">Sodium = Salt ÷ 2.5. If a label prints Total Sugars but not Added Sugars, enter Added Sugars manually if known — it is never guessed from Total Sugars.</p>
+    </details>
+
+    <button class="btn-primary" id="calcBtn" type="button" style="margin-top:14px;">Calculate</button>
+  </div>
+
+  <div id="results"></div>
+
+  <footer>
+    RDA basis: Saturated fat 22&nbsp;g, Added sugars 50&nbsp;g, Sodium 2000&nbsp;mg (FSS Labelling &amp; Display Regulation, 2020).
+    Thresholds depend on serving size: ≤30&nbsp;g → Low ≤5%, Med 6–19%, High ≥20%; 31–199&nbsp;g → Low ≤10%, Med 11–29%, High ≥30%; ≥200&nbsp;g → Low ≤15%, Med 16–39%, High ≥40%.
+    This tool is informational only and is not an official regulatory determination — always verify against the printed label.
+  </footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var RDA = { satfat: 22, sugar: 50, sodium: 2000 };
+
+  function num(id){ var v = document.getElementById(id).value; return v === '' ? null : parseFloat(v); }
+
+  function resolveNutrient(perServingVal, per100Val, servingSizeG){
+    if (perServingVal != null && !isNaN(perServingVal)) return { value: perServingVal, source: 'as printed, per serving' };
+    if (per100Val != null && !isNaN(per100Val) && servingSizeG != null && !isNaN(servingSizeG)) {
+      return { value: per100Val * servingSizeG / 100, source: 'scaled from per-100g label value × serving size' };
+    }
+    return { value: null, source: 'not found on label — enter manually' };
+  }
+
+  function resolveSodium(psSodium, psSalt, p1Sodium, p1Salt, servingSizeG){
+    if (psSodium != null && !isNaN(psSodium)) return { value: psSodium, source: 'as printed, per serving (mg)' };
+    if (psSalt != null && !isNaN(psSalt)) return { value: psSalt * 400, source: 'converted from salt per serving (salt g ÷ 2.5 × 1000)' };
+    if (servingSizeG != null && !isNaN(servingSizeG)) {
+      if (p1Sodium != null && !isNaN(p1Sodium)) return { value: p1Sodium * servingSizeG / 100, source: 'scaled from per-100g sodium × serving size' };
+      if (p1Salt != null && !isNaN(p1Salt)) return { value: p1Salt * 400 * servingSizeG / 100, source: 'converted from per-100g salt, then scaled by serving size' };
+    }
+    return { value: null, source: 'not found on label — enter manually' };
+  }
+
+  function bucketFor(servingSizeG){
+    if (servingSizeG <= 30) return { label: '≤30 g', low: 5, medHigh: 19 };
+    if (servingSizeG < 200) return { label: '31–199 g', low: 10, medHigh: 29 };
+    return { label: '≥200 g', low: 15, medHigh: 39 };
+  }
+
+  function classify(pctInt, bucket){
+    if (pctInt <= bucket.low) return 'low';
+    if (pctInt <= bucket.medHigh) return 'med';
+    return 'high';
+  }
+
+  function badgeLabel(level){ return level === 'low' ? 'LOW' : level === 'med' ? 'MEDIUM' : level === 'high' ? 'HIGH' : 'UNKNOWN'; }
+
+  function renderResult(name, resolved, rda, bucket){
+    var div = document.createElement('div');
+    div.className = 'result';
+    if (resolved.value == null) {
+      div.innerHTML = '<div class="top"><span class="name">' + name + '</span><span class="badge unk">NOT ENOUGH DATA</span></div>'
+        + '<div class="detail">' + resolved.source + '.</div>';
+      return div;
+    }
+    var pct = resolved.value / rda * 100;
+    var pctInt = Math.round(pct);
+    var level = classify(pctInt, bucket);
+    div.innerHTML = '<div class="top"><span class="name">' + name + '</span><span class="badge ' + level + '">' + badgeLabel(level) + '</span></div>'
+      + '<div class="detail">' + resolved.value.toFixed(1) + (name === 'Sodium' ? ' mg' : ' g') + ' per serving = ' + pctInt + '% of RDA (' + rda + (name === 'Sodium' ? 'mg' : 'g') + ') · serving bucket ' + bucket.label + '<br>Source: ' + resolved.source + '</div>';
+    return div;
+  }
+
+  document.getElementById('calcBtn').addEventListener('click', function(){
+    var servingSizeG = num('servingSize');
+    var results = document.getElementById('results');
+    results.innerHTML = '';
+    if (servingSizeG == null || isNaN(servingSizeG) || servingSizeG <= 0) {
+      var warn = document.createElement('div');
+      warn.className = 'card';
+      warn.innerHTML = '<div class="status err">Enter the serving size in grams (from the label) before calculating — it determines which threshold row applies.</div>';
+      results.appendChild(warn);
+      return;
+    }
+    var bucket = bucketFor(servingSizeG);
+
+    var satFat = resolveNutrient(num('ps_satfat'), num('p100_satfat'), servingSizeG);
+    var sugar = resolveNutrient(num('ps_sugar'), num('p100_sugar'), servingSizeG);
+    var sodium = resolveSodium(num('ps_sodium'), num('ps_salt'), num('p100_sodium'), num('p100_salt'), servingSizeG);
+
+    results.appendChild(renderResult('Saturated fat', satFat, RDA.satfat, bucket));
+    results.appendChild(renderResult('Added sugars', sugar, RDA.sugar, bucket));
+    results.appendChild(renderResult('Sodium', sodium, RDA.sodium, bucket));
+  });
+
+  // ---------- keep "per serving" and "per 100g" in sync via the serving size ----------
+  // Per-serving and per-100g are the same underlying quantity at two scales; typing one
+  // should fill the other rather than leaving it for the user to compute by hand.
+  var PAIRS = [
+    ['ps_satfat', 'p100_satfat'],
+    ['ps_sugar', 'p100_sugar']
+  ];
+  function round2(n){ return Math.round(n * 100) / 100; }
+  function servingSizeVal(){ return num('servingSize'); }
+
+  PAIRS.forEach(function(pair){
+    var psEl = document.getElementById(pair[0]);
+    var p1El = document.getElementById(pair[1]);
+    psEl.addEventListener('input', function(){
+      // Propagate a clear too — otherwise the paired field keeps a stale, silently-wrong
+      // number that Calculate would still treat as freshly-entered data.
+      if (psEl.value === '') { p1El.value = ''; return; }
+      var ss = servingSizeVal();
+      if (ss == null || isNaN(ss) || ss <= 0) return;
+      var v = parseFloat(psEl.value);
+      if (!isNaN(v)) p1El.value = round2(v * 100 / ss);
+    });
+    p1El.addEventListener('input', function(){
+      if (p1El.value === '') { psEl.value = ''; return; }
+      var ss = servingSizeVal();
+      if (ss == null || isNaN(ss) || ss <= 0) return;
+      var v = parseFloat(p1El.value);
+      if (!isNaN(v)) psEl.value = round2(v * ss / 100);
+    });
+  });
+
+  // ---------- sodium/salt: four fields, all describing the same quantity ----------
+  // ps_sodium (mg, per serving), p100_sodium (mg, per 100g), ps_salt (g, per serving),
+  // p100_salt (g, per 100g). Unit conversion (sodium mg = salt g × 400) never needs
+  // serving size; crossing serving<->100g does. Editing any one of the four recomputes
+  // the other three from it — that's "everything in sync," not just the same-unit pair.
+  var SODIUM_META = {
+    ps_sodium: { unit: 'mg', scale: 'serving' },
+    p100_sodium: { unit: 'mg', scale: '100g' },
+    ps_salt: { unit: 'g', scale: 'serving' },
+    p100_salt: { unit: 'g', scale: '100g' }
+  };
+  var SODIUM_IDS = Object.keys(SODIUM_META);
+
+  function toMg(id, v){ return SODIUM_META[id].unit === 'mg' ? v : v * 400; }
+  function fromMg(id, mg){ return SODIUM_META[id].unit === 'mg' ? mg : mg / 400; }
+
+  function syncSodiumSalt(editedId){
+    var editedEl = document.getElementById(editedId);
+    if (editedEl.value === '') {
+      SODIUM_IDS.forEach(function(id){ if (id !== editedId) document.getElementById(id).value = ''; });
+      return;
+    }
+    var v = parseFloat(editedEl.value);
+    if (isNaN(v)) return;
+    var mgAtEditedScale = toMg(editedId, v);
+    var editedScale = SODIUM_META[editedId].scale;
+    var ss = servingSizeVal();
+
+    SODIUM_IDS.forEach(function(id){
+      if (id === editedId) return;
+      var targetScale = SODIUM_META[id].scale;
+      var mg;
+      if (targetScale === editedScale) {
+        mg = mgAtEditedScale; // same scale, unit conversion only — no serving size needed
+      } else if (ss != null && !isNaN(ss) && ss > 0) {
+        mg = editedScale === 'serving' ? mgAtEditedScale * 100 / ss : mgAtEditedScale * ss / 100;
+      } else {
+        return; // can't cross serving<->100g without a serving size — leave this field alone
+      }
+      document.getElementById(id).value = round2(fromMg(id, mg));
+    });
+  }
+
+  SODIUM_IDS.forEach(function(id){
+    document.getElementById(id).addEventListener('input', function(){ syncSodiumSalt(id); });
+  });
+
+  // Filling in serving size after nutrient fields are already populated should sync them
+  // too, not just fields typed after it — per-serving takes priority as the source (it's
+  // the value actually used for the verdict) when both sides happen to already have data.
+  document.getElementById('servingSize').addEventListener('input', function(){
+    var ss = servingSizeVal();
+    if (ss == null || isNaN(ss) || ss <= 0) return;
+    PAIRS.forEach(function(pair){
+      var psEl = document.getElementById(pair[0]);
+      var p1El = document.getElementById(pair[1]);
+      if (psEl.value !== '') {
+        var v = parseFloat(psEl.value);
+        if (!isNaN(v)) p1El.value = round2(v * 100 / ss);
+      } else if (p1El.value !== '') {
+        var v2 = parseFloat(p1El.value);
+        if (!isNaN(v2)) psEl.value = round2(v2 * ss / 100);
+      }
+    });
+    var sourceId = SODIUM_IDS.filter(function(id){ return document.getElementById(id).value !== ''; })[0];
+    if (sourceId) syncSodiumSalt(sourceId);
+  });
+
+})();
+</script>
+</body>
+</html>
